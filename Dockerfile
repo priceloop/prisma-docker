@@ -39,4 +39,4 @@ RUN npx prisma migrate status || true # just to download prisma-engine
 COPY ./wait_until_postgres_is_ready .
 COPY ./entrypoint .
 
-ENTRYPOINT /home/node/app/entrypoint
+ENTRYPOINT ["/home/node/app/entrypoint"]
