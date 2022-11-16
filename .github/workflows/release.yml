@@ -51,11 +51,12 @@ jobs:
       - name: Publish Docker Images
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u USERNAME --password-stdin
+
           docker push ghcr.io/${DOCKER_IMAGE}:${APP_VERSION}
 
       - name: Image Version
         run: |
-          echo "${DOCKER_IMAGE}:${APP_VERSION}"
+          echo "ghcr.io/${DOCKER_IMAGE}:${APP_VERSION}"
 
       - name: Checkout nocode repository
         if: github.ref_type == 'tag'
@@ -78,7 +79,7 @@ jobs:
           git checkout -b "prisma-docker-${APP_VERSION}"
 
           source .envrc
-          sed "s/^[fF][rR][oO][mM] priceloop/prisma:.*$/FROM priceloop/prisma:${APP_VERSION}" -i  prisma/Dockerfile
+          sed "s/^[fF][rR][oO][mM] ghcr.io/${DOCKER_IMAGE}:.*$/FROM ghcr.io/${DOCKER_IMAGE}:${APP_VERSION}" -i  prisma/Dockerfile
 
           git commit -am "chore: update prisma-docker version to ${APP_VERSION}"
 
