@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  push:
+    branches: ["main"]
+    tags: [ v* ]
+  # pull_request:
+  #   types: [ opened, synchronize, reopened ]
+  workflow_dispatch:
+
+
+permissions:
+  packages: write
+
+jobs:
+
+  release:
+    runs-on: ubuntu-latest
+    name: "Release"
+    env:
+      DOCKER_IMAGE: priceloop/prisma
+      APP_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.event.pull_request.head.sha || github.sha  }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'yarn'
+
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        with:
+          path: 'node_modules'
+          key: ${{ runner.os }}-node_modules-${{ hashFiles('yarn.lock') }}
+
+      - name: Yarn install
+        run: yarn install --prefer-offline --frozen-lockfile
+
+      - name: Build Docker
+        run: |
+          # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry
+          docker build . \
+            -t ghcr.io/${DOCKER_IMAGE}:${APP_VERSION} \
+            --label "org.opencontainers.image.source=https://github.com/priceloop/prisma-docker" \
+            --label "org.opencontainers.image.description=Prisma Image for Migrations" \
+            --label "org.opencontainers.image.licenses=MIT"
+
+      - name: Publish Docker Images
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u USERNAME --password-stdin
+          docker push ghcr.io/${DOCKER_IMAGE}:${APP_VERSION}
+
+      - name: Image Version
+        run: |
+          echo "${DOCKER_IMAGE}:${APP_VERSION}"
+
+      - name: Checkout nocode repository
+        if: github.ref_type == 'tag'
+        uses: actions/checkout@v3
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          repository: priceloop/nocode
+          path: nocode
+
+      - name: Update nocode repository
+        if: github.ref_type == 'tag'
+        env:
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: |
+          cd nocode/
+
+          git config user.name "priceloop"
+          git config user.email "ogopogo@priceloop.ai"
+
+          git checkout -b "prisma-docker-${APP_VERSION}"
+
+          source .envrc
+          sed "s/^[fF][rR][oO][mM] priceloop/prisma:.*$/FROM priceloop/prisma:${APP_VERSION}" -i  prisma/Dockerfile
+
+          git commit -am "chore: update prisma-docker version to ${APP_VERSION}"
+
+          git push --set-upstream origin "prisma-docker-${APP_VERSION}"
+
+          gh pr create -f

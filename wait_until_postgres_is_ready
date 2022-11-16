@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail
+set -Eeuo pipefail
+
+# Idea from
+# https://github.com/docker-library/postgres/issues/146#issuecomment-872486465
+
+POSTGRES_CONNECTION=$1
+readonly SLEEP_TIME=2
+
+# note: the PGPASSWORD envar is passed in
+until timeout 3 psql "$POSTGRES_CONNECTION" -c "select 1" > /dev/null 2>&1
+do
+  echo "Waiting for PostgreSQL to become ready..."
+  sleep $SLEEP_TIME;
+done

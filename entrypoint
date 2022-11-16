@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+cd $(dirname $0)
+
+./wait_until_postgres_is_ready "$POSTGRES_CONNECTION"
+
+$@

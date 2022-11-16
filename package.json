@@ -1,0 +1,11 @@
+{
+  "license": "UNLICENSED",
+  "type": "module",
+  "devDependencies": {
+    "prisma": "^4.6.1"
+  },
+  "dependencies": {
+    "@prisma/client": "^4.6.1",
+    "pg": "^8.8.0"
+  }
+}
