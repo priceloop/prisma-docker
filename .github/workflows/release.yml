@@ -12,14 +12,15 @@ on:
 permissions:
   packages: write
 
+env:
+  APP_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.event.pull_request.head.sha || github.sha  }}
+  DOCKER_IMAGE: priceloop/prisma
+
 jobs:
 
   release:
     runs-on: ubuntu-latest
     name: "Release"
-    env:
-      DOCKER_IMAGE: priceloop/prisma
-      APP_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.event.pull_request.head.sha || github.sha  }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -58,14 +59,26 @@ jobs:
             --label "org.opencontainers.image.description=Prisma Image for Migrations" \
             --label "org.opencontainers.image.licenses=MIT" \
             --push \
-            . 
+            .
 
+  nocode-repo:
+    name: "Push version to nocode-repo"
+    needs: ["release"]
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
+    steps:
       - name: Image Version
         run: |
           echo "ghcr.io/${DOCKER_IMAGE}:${APP_VERSION}"
 
+      - name: Generate github token
+        id: generate-token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.GH_APP_ID }}
+          private_key: ${{ secrets.GH_PRIVATE_KEY }}
+
       - name: Checkout nocode repository
-        if: github.ref_type == 'tag'
         uses: actions/checkout@v3
         with:
           token: ${{ steps.generate-token.outputs.token }}
@@ -73,7 +86,6 @@ jobs:
           path: nocode
 
       - name: Update nocode repository
-        if: github.ref_type == 'tag'
         env:
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
