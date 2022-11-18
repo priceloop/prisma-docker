@@ -39,20 +39,26 @@ jobs:
       - name: Yarn install
         run: yarn install --prefer-offline --frozen-lockfile
 
-      - name: Build Docker
-        run: |
-          # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry
-          docker build . \
-            -t ghcr.io/${DOCKER_IMAGE}:${APP_VERSION} \
-            --label "org.opencontainers.image.source=https://github.com/priceloop/prisma-docker" \
-            --label "org.opencontainers.image.description=Prisma Image for Migrations" \
-            --label "org.opencontainers.image.licenses=MIT"
+      # https://github.com/docker/setup-qemu-action
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
 
-      - name: Publish Docker Images
+      # https://github.com/docker/setup-buildx-action
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and Publish Docker Images
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u USERNAME --password-stdin
-
-          docker push ghcr.io/${DOCKER_IMAGE}:${APP_VERSION}
+          docker buildx build \
+            --platform linux/arm64,linux/amd64 \
+            --tag ghcr.io/${DOCKER_IMAGE}:${APP_VERSION} \
+            --label "org.opencontainers.image.source=https://github.com/priceloop/prisma-docker" \
+            --label "org.opencontainers.image.description=Prisma Image for Migrations" \
+            --label "org.opencontainers.image.licenses=MIT" \
+            --push \
+            . 
 
       - name: Image Version
         run: |
