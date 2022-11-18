@@ -97,7 +97,7 @@ jobs:
           git checkout -b "prisma-docker-${APP_VERSION}"
 
           source .envrc
-          sed "s/^[fF][rR][oO][mM] ghcr.io/${DOCKER_IMAGE}:.*$/FROM ghcr.io/${DOCKER_IMAGE}:${APP_VERSION}" -i  prisma/Dockerfile
+          sed "s#^[fF][rR][oO][mM] ghcr.io/${DOCKER_IMAGE}:.*\$#FROM ghcr.io/${DOCKER_IMAGE}:${APP_VERSION}#" -i  prisma/Dockerfile
 
           git commit -am "chore: update prisma-docker version to ${APP_VERSION}"
 
