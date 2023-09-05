@@ -3,7 +3,7 @@ FROM node:18-slim
 # instructions of how to get prisma running on ARM properly found here:
 # https://github.com/prisma/prisma/issues/15574
 
-# Install psql and pg_dump in version 14 (node slim image doesn't install postgres 14, since this is not marked as a stable debian package yet)
+# Install psql and pg_dump in version 15 (node slim image doesn't install postgres 15, since this is not marked as a stable debian package yet)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
     apt-transport-https \
@@ -15,7 +15,7 @@ RUN apt-get update \
     && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc  | gpg --dearmor -o /usr/share/keyrings/postgresql-keyring.gpg \
     && echo "deb [signed-by=/usr/share/keyrings/postgresql-keyring.gpg] http://apt.postgresql.org/pub/repos/apt/ bullseye-pgdg main" | tee /etc/apt/sources.list.d/postgresql.list \
     && apt-get update \
-    && apt-get install -y postgresql-client-14 \
+    && apt-get install -y postgresql-client-15 \
     && apt-get autoclean \
     && apt-get autoremove \
     && rm -rf /var/lib/apt/lists/*
