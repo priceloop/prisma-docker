@@ -12,10 +12,7 @@ RUN apt-get update \
     curl  \
     gpg \
     openssl \
-    && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc  | gpg --dearmor -o /usr/share/keyrings/postgresql-keyring.gpg \
-    && echo "deb [signed-by=/usr/share/keyrings/postgresql-keyring.gpg] http://apt.postgresql.org/pub/repos/apt/ bullseye-pgdg main" | tee /etc/apt/sources.list.d/postgresql.list \
-    && apt-get update \
-    && apt-get install -y postgresql-client-15 \
+    postgresql-client-15 \
     && apt-get autoclean \
     && apt-get autoremove \
     && rm -rf /var/lib/apt/lists/*
