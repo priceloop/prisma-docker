@@ -1,4 +1,4 @@
-FROM node:18-slim
+FROM node:20-slim
 
 # instructions of how to get prisma running on ARM properly found here:
 # https://github.com/prisma/prisma/issues/15574
